@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Probe
+metadata:
+  name: example-probe
+spec:
+  # Add fields here
+  specOverride: crdAnnotations
+  

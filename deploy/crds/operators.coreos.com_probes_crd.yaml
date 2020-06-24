@@ -1,0 +1,109 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: probes.operators.coreos.com
+spec:
+  group: operators.coreos.com
+  names:
+    kind: Probe
+    listKind: ProbeList
+    plural: probes
+    singular: probe
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Probe is the Schema for the probes API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ProbeSpec defines the desired state of Probe
+            properties:
+              probeResources:
+                description: ProbeResource
+                properties:
+                  crdName:
+                    description: name is the name of the CRD used for this probe.
+                    type: string
+                  important:
+                    description: Important is a list of condition types that map to
+                      the upgradeable "OLM Supported Condition"
+                    items:
+                      type: string
+                    type: array
+                  upgradeable:
+                    description: Upgradeable is a list of condition types that map
+                      to the upgradeable "OLM Supported Condition"
+                    items:
+                      type: string
+                    type: array
+                required:
+                - crdName
+                - important
+                - upgradeable
+                type: object
+              specOverride:
+                description: specOverride allows annotations to override the spec.
+                  This feature may be expanded to accept other overrides in the future.
+                enum:
+                - crdAnnotations
+                type: string
+            type: object
+          status:
+            description: ProbeStatus defines the observed state of Probe
+            properties:
+              probeResources:
+                description: resource is a list of resources.
+                items:
+                  properties:
+                    name:
+                      type: string
+                    resources:
+                      items:
+                        properties:
+                          conditions:
+                            description: conditions
+                            items:
+                              properties:
+                                message:
+                                  type: string
+                                reason:
+                                  type: string
+                                type:
+                                  type: string
+                              type: object
+                            type: array
+                          uid:
+                            type: string
+                        required:
+                        - uid
+                        type: object
+                      type: array
+                  required:
+                  - name
+                  - resources
+                  type: object
+                type: array
+              upgradeable:
+                description: upgradeable communicates to OLM if the operator can be
+                  upgraded. If the field is not set, OLM will assume that the operator
+                  has not communicated this state.
+                type: boolean
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
