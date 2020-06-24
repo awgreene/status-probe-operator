@@ -124,38 +124,8 @@ func (r *ReconcileProbe) Reconcile(request reconcile.Request) (reconcile.Result,
 		return reconcile.Result{}, err
 	}
 
-	var truePtr bool
-	instance.Status.Upgradeable = &truePtr
-
-	instance.Status.ProbeResources = []operatorsv1alpha1.ProbeResourceStatus{
-		{
-			Name: "foo.example.com",
-			Resources: []operatorsv1alpha1.ProbeResourceConditions{
-				{
-					UID: "asdf",
-					Conditions: []operatorsv1alpha1.ProbeCondition{
-						{
-							Type:    "Upgradeable",
-							Reason:  "JustIs",
-							Message: "Just Upgrade the operator",
-						},
-					},
-				},
-				{
-					UID: "fdsa",
-					Conditions: []operatorsv1alpha1.ProbeCondition{
-						{
-							Type:    "Upgradeable",
-							Reason:  "JustIs",
-							Message: "Just Upgrade the operator",
-						},
-					},
-				},
-			},
-		},
-	}
-	if err = r.client.Status().Update(context.TODO(), instance); err != nil {
-		reqLogger.Info("Error Updating probe status")
+	if err = r.updateProbeStatus(instance); err != nil {
+		reqLogger.Info("Error Updating probe status: %v\n", err)
 	}
 
 	// Pod already exists - don't requeue

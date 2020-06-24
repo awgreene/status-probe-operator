@@ -32,28 +32,28 @@ spec:
             description: ProbeSpec defines the desired state of Probe
             properties:
               probeResources:
-                description: ProbeResource
-                properties:
-                  crdName:
-                    description: name is the name of the CRD used for this probe.
-                    type: string
-                  important:
-                    description: Important is a list of condition types that map to
-                      the upgradeable "OLM Supported Condition"
-                    items:
+                items:
+                  description: ProbeResource
+                  properties:
+                    crdName:
+                      description: name is the name of the CRD used for this probe.
                       type: string
-                    type: array
-                  upgradeable:
-                    description: Upgradeable is a list of condition types that map
-                      to the upgradeable "OLM Supported Condition"
-                    items:
-                      type: string
-                    type: array
-                required:
-                - crdName
-                - important
-                - upgradeable
-                type: object
+                    important:
+                      description: Important is a list of condition types that map
+                        to the important "OLM Supported Condition"
+                      items:
+                        type: string
+                      type: array
+                    upgradeable:
+                      description: Upgradeable is a list of condition types that map
+                        to the upgradeable "OLM Supported Condition"
+                      items:
+                        type: string
+                      type: array
+                  required:
+                  - crdName
+                  type: object
+                type: array
               specOverride:
                 description: specOverride allows annotations to override the spec.
                   This feature may be expanded to accept other overrides in the future.
@@ -77,9 +77,13 @@ spec:
                             description: conditions
                             items:
                               properties:
+                                lastTransitionTime:
+                                  type: string
                                 message:
                                   type: string
                                 reason:
+                                  type: string
+                                status:
                                   type: string
                                 type:
                                   type: string
@@ -93,7 +97,6 @@ spec:
                       type: array
                   required:
                   - name
-                  - resources
                   type: object
                 type: array
               upgradeable:

@@ -3,6 +3,12 @@ kind: Probe
 metadata:
   name: example-probe
 spec:
-  # Add fields here
-  specOverride: crdAnnotations
+  #specOverride: crdAnnotations
+  probeResources:
+    - crdName: "foo.example.com"
+      upgradeable:
+      - migrating
+      - Migrating
+      important:
+      - share
   

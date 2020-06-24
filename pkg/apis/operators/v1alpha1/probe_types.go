@@ -11,8 +11,8 @@ import (
 type ProbeSpec struct {
 	// specOverride allows annotations to override the spec. This feature may be expanded to accept other overrides in the future.
 	// +kubebuilder:validation:Enum=crdAnnotations
-	specOverride   string        `json:"specOverride,omitempty"`
-	probeResources ProbeResource `json:"probeResources,omitempty"`
+	SpecOverride   string          `json:"specOverride,omitempty"`
+	ProbeResources []ProbeResource `json:"probeResources,omitempty"`
 }
 
 // ProbeResource
@@ -21,19 +21,19 @@ type ProbeResource struct {
 	Name string `json:"crdName"`
 
 	// Upgradeable is a list of condition types that map to the upgradeable "OLM Supported Condition"
-	Upgradeable []string `json:"upgradeable, omitempty"`
+	Upgradeable []string `json:"upgradeable,omitempty"`
 
-	// Important is a list of condition types that map to the upgradeable "OLM Supported Condition"
-	Important []string `json:"important, omitempty"`
+	// Important is a list of condition types that map to the important "OLM Supported Condition"
+	Important []string `json:"important,omitempty"`
 }
 
 type ProbeResourceStatus struct {
 	Name      string                    `json:"name"`
-	Resources []ProbeResourceConditions `json:"resources"`
+	Resources []ProbeResourceConditions `json:"resources,omitempty"`
 }
 
 type ProbeResourceConditions struct {
-	UID string `json:"uid, omitempty"`
+	UID string `json:"uid"`
 	// conditions
 	Conditions []ProbeCondition `json:"conditions,omitempty"`
 }
@@ -48,9 +48,11 @@ type ProbeStatus struct {
 }
 
 type ProbeCondition struct {
-	Type    string `json:"type,omitempty"`
-	Reason  string `json:"reason,omitempty"`
-	Message string `json:"message,omitempty"`
+	Type               string `json:"type,omitempty"`
+	Reason             string `json:"reason,omitempty"`
+	Message            string `json:"message,omitempty"`
+	LastTransitionTime string `json:"lastTransitionTime,omitempty"`
+	Status             string `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
