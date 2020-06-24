@@ -1,0 +1,16 @@
+apiVersion: example.com/v1alpha1
+kind: Foo
+metadata:
+  name: example-foo
+spec:
+  # Add fields here
+  size: 3
+status:
+  conditions:
+  - type: test
+    reason: "MigratingDBs"
+  - type: ignore
+    reason: "NotImportant"
+  - type: critical
+    reason: "WantToSayHi"
+  

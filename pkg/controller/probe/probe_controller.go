@@ -124,10 +124,6 @@ func (r *ReconcileProbe) Reconcile(request reconcile.Request) (reconcile.Result,
 		return reconcile.Result{}, err
 	}
 
-	if err = r.updateProbeStatus(instance); err != nil {
-		reqLogger.Info("Error Updating probe status: %v\n", err)
-	}
-
 	// Pod already exists - don't requeue
 	reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
 	return reconcile.Result{}, nil

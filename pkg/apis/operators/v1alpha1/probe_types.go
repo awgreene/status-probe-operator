@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -28,12 +29,12 @@ type ProbeResource struct {
 }
 
 type ProbeResourceStatus struct {
-	Name      string                    `json:"name"`
-	Resources []ProbeResourceConditions `json:"resources,omitempty"`
+	Name      string                   `json:"name"`
+	Resources []ProbeResourceCondition `json:"resources,omitempty"`
 }
 
-type ProbeResourceConditions struct {
-	UID string `json:"uid"`
+type ProbeResourceCondition struct {
+	UID types.UID `json:"uid"`
 	// conditions
 	Conditions []ProbeCondition `json:"conditions,omitempty"`
 }

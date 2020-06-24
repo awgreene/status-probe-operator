@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	operatorsv1alpha1 "github.com/awgreene/status-probe-operator/pkg/apis/operators/v1alpha1"
 	"github.com/yalp/jsonpath"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -52,9 +53,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	obj := unstructured.Unstructured{}
 	obj.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   "",
-		Version: "v1",
-		Kind:    "Pod",
+		Group:   "example.com",
+		Version: "v1alpha1",
+		Kind:    "Foo",
 	})
 
 	err = c.Watch(&source.Kind{Type: &obj}, &handler.EnqueueRequestForObject{})
@@ -92,9 +93,9 @@ func (r *ReconcileDynamic) Reconcile(request reconcile.Request) (reconcile.Resul
 	reqLogger.Info("Reconciling Dynamic")
 
 	instance, err := r.client.Resource(schema.GroupVersionResource{
-		Group:    "",
-		Version:  "v1",
-		Resource: "pods", // Plural
+		Group:    "example.com",
+		Version:  "v1alpha1",
+		Resource: "foos", // Plural
 	}).Namespace(request.Namespace).Get(context.TODO(), request.Name, metav1.GetOptions{})
 	if err != nil {
 		return reconcile.Result{}, err
@@ -102,36 +103,74 @@ func (r *ReconcileDynamic) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	conditionsBlob, err := jsonpath.Read(instance.UnstructuredContent(), componentConditionsJSONPath)
 	if err != nil {
-		return reconcile.Result{}, err
+		return reconcile.Result{Requeue: false}, err
 	}
 
-	conditionsArray, err := conditionsBlob.([]interface{})
-	if err != nil {
-		return reconcile.Result{}, fmt.Errorf("Unable to get conditions array: %v", err)
+	conditionsArray, ok := conditionsBlob.([]interface{})
+	if !ok {
+		return reconcile.Result{Requeue: false}, fmt.Errorf("Unable to get conditions array: %v", err)
 	}
 
+	operatorProbeConditions := []operatorsv1alpha1.ProbeCondition{}
 	for _, c := range conditionsArray {
-		conditionMap, err := c.(map[string]interface{})
-		if err != nil {
-			return reconcile.Result{}, fmt.Errorf("Unable to convert object in condition array to a map: %v", err)
+		conditionMap, ok := c.(map[string]interface{})
+		if !ok {
+			return reconcile.Result{Requeue: false}, fmt.Errorf("Unable to convert object in condition array to a map: %v", err)
 		}
-		conditionType, present := conditionMap["type"]
-		if !present {
-			return reconcile.Result{}, fmt.Errorf("Unable to find condition type: %v", err)
+		conditionType, ok := conditionMap["type"]
+		if !ok {
+			return reconcile.Result{Requeue: false}, fmt.Errorf("Unable to find condition type: %v", err)
 		}
 
 		// Abstract code that identifies if type maps to Operator Status Condition.
+		typeString, ok := conditionType.(string)
+		if !ok {
+			return reconcile.Result{Requeue: false}, fmt.Errorf("Condition Type should be a string")
+		}
+
 		if IsOperatorProbeCondition(conditionType.(string)) {
 			klog.Infof("Found target Type")
-			// Do something
+			probeCondition := operatorsv1alpha1.ProbeCondition{Type: MapCondition(typeString)}
+
+			if reason, ok := conditionMap["reason"].(string); ok {
+				probeCondition.Reason = reason
+			}
+			if message, ok := conditionMap["message"].(string); ok {
+				probeCondition.Message = message
+			}
+			if lastTransitionTime, ok := conditionMap["lastTransitionTime"].(string); ok {
+				probeCondition.LastTransitionTime = lastTransitionTime
+			}
+			if status, ok := conditionMap["status"].(string); ok {
+				probeCondition.Status = status
+			}
+			operatorProbeConditions = append(operatorProbeConditions, probeCondition)
 		}
 	}
+
+	klog.Infof("Conditions %v", operatorProbeConditions)
+
+	/*if err = r.updateProbeStatus(instance); err != nil {
+		reqLogger.Info("Error Updating probe status: %v\n", err)
+	}*/
+
 	return reconcile.Result{}, nil
 }
 
 func IsOperatorProbeCondition(s string) bool {
-	if s == "ContainersReady" {
+	if s == "test" || s == "critical" {
 		return true
 	}
 	return false
+}
+
+func MapCondition(s string) string {
+	if s == "test" {
+		return "Upgradeable"
+	}
+
+	if s == "critical" {
+		return "Important"
+	}
+	return ""
 }
